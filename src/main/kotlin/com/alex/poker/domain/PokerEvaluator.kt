@@ -1,37 +1,55 @@
 package com.alex.poker.domain
 
 class PokerEvaluator {
-    private var kindMatches = 0
-    private var groups = 0
-    private var straight = false
-    private var flush = false
-    private var royal = false
 
-    fun evaluate(case: List<Card>): PokerCombo {
+    fun evaluate(case: List<Card>): HandResult {
+        var straight = false
+        var flush = false
+        var royal = false
+        var isAceAsOne = false
+
         val sorted = case.sortedWith { c1, c2 -> c1.value.number.compareTo(c2.value.number) }
-
         val groupedByValue = sorted.groupingBy { it.value }.eachCount().toList().sortedByDescending { it.second }
 
-        groups = groupedByValue.size
-        kindMatches = groupedByValue[0].second
+        val groups = groupedByValue.size
+        val kindMatches = groupedByValue[0].second
 
-        if (groups == case.size) {
+        if (groups == sorted.size) {
             flush = sorted.groupBy { it.suit }.size == 1
+
+            straight = if (sorted.first().value == Value.TWO && sorted.last().value == Value.ACE) {
+                isAceAsOne = true
+                sorted[sorted.lastIndex - 1].value.number - 1 == 4
+            } else {
+                sorted.last().value.number - sorted.first().value.number == 4
+            }
 
             if (straight && flush && sorted[0].value.number == 10) {
                 royal = true
             }
         }
 
-        return PokerCombo.findCombo(setting = ComboSetting(
-            kindMatches = kindMatches,
-            groups = groups,
-            straight = straight,
-            flush = flush,
-            royal = royal,
-        ))
+        val combo = PokerCombo.findCombo(
+            setting = ComboSetting(
+                kindMatches = kindMatches,
+                groups = groups,
+                straight = straight,
+                flush = flush,
+                royal = royal,
+            )
+        )
+
+        return HandResult(
+            combo,
+            sorted.sumOf { it.value.number }.also { if (isAceAsOne) it - 13 },
+        )
     }
 }
+
+data class HandResult(
+    val combo: PokerCombo,
+    val extraWeight: Int,
+)
 
 data class ComboSetting(
     val kindMatches: Int = 1,
