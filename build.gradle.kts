@@ -2,16 +2,20 @@ plugins {
     kotlin("jvm") version "2.0.0"
 }
 
-group = "com.alex.gl"
+group = "com.alex.poker"
 version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
 }
 
+val junitVersion = ext["junitVersion"]
+
 dependencies {
     testImplementation(kotlin("test"))
-    testCompileOnly("org.junit.jupiter:junit-jupiter-params:5.10.3")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
 }
 
 tasks.test {
